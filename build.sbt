@@ -33,9 +33,12 @@ lazy val `web-crawler` =
     .settings(
       libraryDependencies ++= Seq(
         library.akka,
+        library.alpakkaFile,
+        library.akkaStreams,
         library.akkaLogging,
         library.logBack,
         library.jSoup,
+        library.sCaffeine   % Compile,
         library.akkaTestKit % Test,
         library.scalaTest   % Test,
       ),
@@ -66,20 +69,25 @@ fork := true
 lazy val library =
   new {
     object Version {
-      val akkaVersion      = "2.6.19"
-      val scalaTestVersion = "3.2.11"
-      val scalafixVersion  = "0.6.0"
-      val logbackVersion   = "1.2.11"
-      val jSoupVersion     = "1.14.3"
+      val AkkaVersion      = "2.6.19"
+      val AlpakkaVersion   = "3.0.4"
+      val ScalaTestVersion = "3.2.11"
+      val ScalafixVersion  = "0.6.0"
+      val LogbackVersion   = "1.2.11"
+      val JSoupVersion     = "1.14.3"
+      val SCaffeineVersion = "5.1.2"
     }
-    val akka        = "com.typesafe.akka" %% "akka-actor-typed"         % Version.akkaVersion
-    val akkaTestKit = "com.typesafe.akka" %% "akka-actor-testkit-typed" % Version.akkaVersion
-    val scalaTest   = "org.scalatest"     %% "scalatest"                % Version.scalaTestVersion
-    val akkaLogging = "com.typesafe.akka" %% "akka-slf4j"               % Version.akkaVersion
-    val logBack     = "ch.qos.logback"     % "logback-classic"          % Version.logbackVersion
-    val jSoup       = "org.jsoup"          % "jsoup"                    % Version.jSoupVersion
+    val akka        = "com.typesafe.akka"  %% "akka-actor-typed"         % Version.AkkaVersion
+    val alpakkaFile = "com.lightbend.akka" %% "akka-stream-alpakka-file" % Version.AlpakkaVersion
+    val akkaStreams = "com.typesafe.akka"  %% "akka-stream"              % Version.AkkaVersion
+    val akkaTestKit = "com.typesafe.akka"  %% "akka-actor-testkit-typed" % Version.AkkaVersion
+    val scalaTest   = "org.scalatest"      %% "scalatest"                % Version.ScalaTestVersion
+    val akkaLogging = "com.typesafe.akka"  %% "akka-slf4j"               % Version.AkkaVersion
+    val logBack     = "ch.qos.logback"      % "logback-classic"          % Version.LogbackVersion
+    val jSoup       = "org.jsoup"           % "jsoup"                    % Version.JSoupVersion
+    val sCaffeine   = "com.github.blemale" %% "scaffeine"                % Version.SCaffeineVersion
 
-    val scalafix = "com.github.liancheng" %% "organize-imports" % Version.scalafixVersion
+    val scalafix = "com.github.liancheng" %% "organize-imports" % Version.ScalafixVersion
   }
 
 addCommandAlias(

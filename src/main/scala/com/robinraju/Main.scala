@@ -1,39 +1,58 @@
 package com.robinraju
 
+import java.net.URL
+
+import scala.util.Try
+
+import akka.NotUsed
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ ActorSystem, Behavior }
+import akka.actor.typed.{ ActorSystem, Behavior, Terminated }
+import com.typesafe.config.ConfigFactory
 import org.slf4j.{ Logger, LoggerFactory }
+
+import com.robinraju.cache.InMemoryCrawlerCache
+import com.robinraju.core.AppConfig
+import com.robinraju.crawler.CrawlManager
+import com.robinraju.io.TSVWriter
 
 object Main {
 
   /**
-    * Here is a good idea to try to force an early initialisation of SLF4J to avoid error codes like described here:
+    * Force an early initialisation of SLF4J to avoid error codes like described here:
     * http://www.slf4j.org/codes.html#replay
     */
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   def main(args: Array[String]): Unit = {
-    logger.trace("Web Crawler startup...")
+    logger.info("Web Crawler startup...")
 
-    ActorSystem[Nothing](
-      RootBehavior(),
+    val appConfig = AppConfig(ConfigFactory.load())
+
+    val seedUrl  = args.headOption.map(new URL(_)).getOrElse(appConfig.seedUrl)
+    val maxDepth = Try(args.tail).toOption.flatMap(_.headOption.map(_.toInt)).getOrElse(appConfig.maxCrawlDepth)
+
+    ActorSystem[NotUsed](
+      RootBehavior(appConfig.copy(seedUrl = seedUrl, maxCrawlDepth = maxDepth)),
       "web-crawler"
     )
+
   }
 }
 
 object RootBehavior {
-  def apply(): Behavior[Nothing] =
-    Behaviors.setup[Nothing] { context =>
-//      implicit val system: ActorSystem[_] = context.system
-//      implicit val log: Logger            = system.log
-//      implicit val ec: ExecutionContext   = system.executionContext
+  def apply(appConfig: AppConfig): Behavior[NotUsed] =
+    Behaviors.setup[NotUsed] { context =>
+      val inMemoryCache = InMemoryCrawlerCache(appConfig.cacheConfig.maxCacheSize, appConfig.cacheConfig.cacheExpiry)
 
-      val greeter = context.spawn(Greeter(), "greeter")
-      val replyTo = context.spawn(GreeterBot(max = 3), "Robin")
+      val tsvWriter    = context.spawn(TSVWriter(appConfig), "tsv-writer")
+      val crawlManager = context.spawn(CrawlManager(appConfig.maxCrawlDepth, tsvWriter, inMemoryCache), "crawl-manager")
 
-      greeter ! Greeter.Greet("Robin", replyTo)
+      // Start crawling from the seed url
+      crawlManager ! CrawlManager.StartCrawling(appConfig.seedUrl)
 
-      Behaviors.empty[Nothing]
+      Behaviors.receiveSignal {
+        case (_, Terminated(_)) =>
+          Behaviors.stopped
+      }
     }
 }
