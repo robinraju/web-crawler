@@ -55,30 +55,20 @@ object LinkExtractionWorker {
     }
   }
 
+  private def isFile(url: String): Boolean = {
+    val regEx = """.*\.(\w+)""".r
+    url match {
+      case regEx(_) if !url.endsWith("html") => true
+      case _                                 => false
+    }
+  }
+
   private def isInvalidUrl(url: String): Boolean =
     List(
       "#",
       "javascript",
-      ".jpg",
-      ".JPG",
-      ".BMP",
-      ".bmp",
-      ".png",
-      ".PNG",
-      ".jpeg",
-      ".JPEG",
-      ".MP4",
-      ".mp4",
-      ".flv",
-      ".pdf",
-      ".PDF",
-      ".eps",
-      ".EPS",
-      ".svg",
-      ".SVG",
-      ".webp",
-      ".webm"
-    ).exists(url.contains)
+      "mailto",
+    ).exists(url.contains) || isFile(url)
 
   private def fetchLinksFromURl(url: URL, context: ActorContext[WorkerCommand]): Option[Set[URL]] = {
     val htmlDocument = Try(
