@@ -17,7 +17,7 @@ object LinkHarvester {
   final case class HarvestLinks(links: Set[URL], currentDepth: Int) extends HarvesterCommand
 
   // messages for internal actor communication
-  final case class CachedUrlObtained(cachedUrls: Option[Set[URL]], parentUrl: URL, currentDepth: Int)
+  final case class CachedUrlResult(cachedUrls: Option[Set[URL]], parentUrl: URL, currentDepth: Int)
       extends HarvesterCommand
   final case class WriteToCacheSuccess(parentUrl: URL, childUrls: Set[URL], currentDepth: Int) extends HarvesterCommand
   final case class CacheAccessFailure(error: Throwable)                                        extends HarvesterCommand
@@ -50,12 +50,12 @@ class LinkHarvester private (
       links.foreach { link =>
         context.pipeToSelf(cache.get(link)) {
           case Failure(exception) => CacheAccessFailure(exception)
-          case Success(cachedUrl) => CachedUrlObtained(cachedUrl, link, currentDepth)
+          case Success(cachedUrl) => CachedUrlResult(cachedUrl, link, currentDepth)
         }
       }
       Behaviors.same
 
-    case CachedUrlObtained(cachedUrls, parentUrl, currentDepth) =>
+    case CachedUrlResult(cachedUrls, parentUrl, currentDepth) =>
       cachedUrls match {
         case Some(cachedUrls) =>
           context.log.info("URL {} found from cache", parentUrl)
