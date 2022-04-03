@@ -33,8 +33,6 @@ lazy val `web-crawler` =
     .settings(
       libraryDependencies ++= Seq(
         library.akka,
-        library.alpakkaFile,
-        library.akkaStreams,
         library.akkaLogging,
         library.logBack,
         library.jSoup,
@@ -70,7 +68,6 @@ lazy val library =
   new {
     object Version {
       val AkkaVersion      = "2.6.19"
-      val AlpakkaVersion   = "3.0.4"
       val ScalaTestVersion = "3.2.11"
       val ScalafixVersion  = "0.6.0"
       val LogbackVersion   = "1.2.11"
@@ -78,8 +75,6 @@ lazy val library =
       val SCaffeineVersion = "5.1.2"
     }
     val akka        = "com.typesafe.akka"  %% "akka-actor-typed"         % Version.AkkaVersion
-    val alpakkaFile = "com.lightbend.akka" %% "akka-stream-alpakka-file" % Version.AlpakkaVersion
-    val akkaStreams = "com.typesafe.akka"  %% "akka-stream"              % Version.AkkaVersion
     val akkaTestKit = "com.typesafe.akka"  %% "akka-actor-testkit-typed" % Version.AkkaVersion
     val scalaTest   = "org.scalatest"      %% "scalatest"                % Version.ScalaTestVersion
     val akkaLogging = "com.typesafe.akka"  %% "akka-slf4j"               % Version.AkkaVersion
