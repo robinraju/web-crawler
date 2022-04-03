@@ -22,8 +22,9 @@ object LinkHarvester {
   final case class CacheAccessFailure(error: Throwable)                                        extends HarvesterCommand
 
   sealed trait HarvesterResponse
-  final case class HarvestedLinks(parentUrl: URL, childUrls: Set[URL], currentDepth: Int) extends HarvesterResponse
-  final case class LinkHarvestFailed(currentDepth: Int)                                   extends HarvesterResponse
+  final case class HarvestedLinks(parentUrl: URL, childUrls: Set[URL], currentDepth: Int, isCached: Boolean = false)
+      extends HarvesterResponse
+  final case class LinkHarvestFailed(currentDepth: Int) extends HarvesterResponse
 
   final case class WorkerResponseWrapper(response: LinkExtractionWorker.WorkerResponse) extends HarvesterCommand
 
@@ -62,7 +63,7 @@ class LinkHarvester private (
       cachedUrls match {
         case Some(cachedUrls) =>
           context.log.info("URL {} found from cache", parentUrl)
-          manager ! HarvestedLinks(parentUrl, cachedUrls, currentDepth)
+          manager ! HarvestedLinks(parentUrl, cachedUrls, currentDepth, isCached = true)
         case None =>
           val worker = context.spawn(workerBehavior, s"link-extraction-worker-${UUID.randomUUID().toString}")
           worker ! LinkExtractionWorker.StartExtraction(parentUrl, currentDepth, responseWrapper)
