@@ -1,13 +1,14 @@
 package com.robinraju.crawler
 
+import java.net.URL
+
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 import akka.actor.typed.{ ActorRef, Behavior }
+
 import com.robinraju.cache.WebCrawlerCache
 import com.robinraju.core.CrawledPageResult
 import com.robinraju.io.TSVWriter
 import com.robinraju.util.DomainRatioUtil
-
-import java.net.URL
 
 object CrawlManager {
 
@@ -47,25 +48,27 @@ class CrawlManager private (
           case LinkHarvester.HarvestedLinks(parentUrl, childUrls, depth) =>
             val sameDomainRatio = DomainRatioUtil.calculateSameDomainRatio(parentUrl, childUrls)
 
-            context.log.info(s"URL: $parentUrl  Depth: $depth  Ratio: $sameDomainRatio")
-            context.log.info(s"Current Depth: $currentDepth Max: $maxDepth")
+            context.log.info(s"URL: {}  Depth: {}  Ratio: {}", parentUrl, depth, sameDomainRatio)
+            context.log.info(s"Current Depth:{} Max: {}", currentDepth, maxDepth)
             tsvWriter ! TSVWriter.WriteToFile(CrawledPageResult(parentUrl.toString, depth, sameDomainRatio))
 
             val requestsInFlight = queuedRequests.updated(depth, Math.max(queuedRequests(depth) - 1, 0))
 
             if (currentDepth == maxDepth) {
               Behaviors.same
+            } else if (requestsInFlight(currentDepth) == 0) {
+              linkHarvester ! LinkHarvester.HarvestLinks(childUrls, currentDepth + 1)
+              crawling(
+                currentDepth + 1,
+                maxDepth,
+                requestsInFlight.removed(currentDepth).updated(currentDepth + 1, childUrls.size)
+              )
             } else {
-              if (requestsInFlight(currentDepth) == 0) {
-                linkHarvester ! LinkHarvester.HarvestLinks(childUrls, depth + 1)
-                crawling(
-                  currentDepth + 1,
-                  maxDepth,
-                  requestsInFlight.removed(currentDepth).updated(currentDepth + 1, childUrls.size)
-                )
-              } else {
+              if (depth < maxDepth) {
                 linkHarvester ! LinkHarvester.HarvestLinks(childUrls, depth + 1)
                 crawling(currentDepth, maxDepth, requestsInFlight.updated(depth + 1, childUrls.size))
+              } else {
+                crawling(currentDepth, maxDepth, requestsInFlight)
               }
             }
           case LinkHarvester.LinkHarvestFailed(depth) =>
