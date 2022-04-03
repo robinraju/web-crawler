@@ -91,6 +91,6 @@ lazy val library =
   }
 
 addCommandAlias(
-  "qa",
+  "styleCheck",
   "; scalafmtCheckAll; scalafmtSbtCheck ; scalafixAll --check"
 )

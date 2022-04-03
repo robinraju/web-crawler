@@ -2,12 +2,11 @@ package com.robinraju.crawler
 
 import java.net.URL
 
-import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
-import akka.actor.typed.{ ActorRef, Behavior, SupervisorStrategy }
+import akka.actor.typed.{ ActorRef, Behavior }
 import org.jsoup.Jsoup
 
 object LinkExtractionWorker {
@@ -21,13 +20,7 @@ object LinkExtractionWorker {
   final case class LinkExtractionSuccess(parentPage: URL, childUrls: Set[URL], currentDepth: Int) extends WorkerResponse
   final case class LinkExtractionFailed(currentDepth: Int)                                        extends WorkerResponse
 
-  def apply(): Behavior[WorkerCommand] = Behaviors
-    .supervise(inProgress(0))
-    .onFailure[IllegalStateException](
-      // if exception occur repeatedly, worker will be restarted with backoff delays
-      // this will prevent sending too many requests to the host server.
-      SupervisorStrategy.restartWithBackoff(minBackoff = 200.millis, maxBackoff = 10.seconds, randomFactor = 0.1)
-    )
+  def apply(): Behavior[WorkerCommand] = inProgress(0)
 
   def inProgress(currentDepth: Int): Behavior[WorkerCommand] = Behaviors.receive { (context, message) =>
     message match {
@@ -41,17 +34,22 @@ object LinkExtractionWorker {
       case UrlFetchFailure(exception, replyTo) =>
         exception match {
           case e: java.net.MalformedURLException =>
-            context.log.error("Failed fetching url {}", e)
+            context.log.error("Failed fetching url {}", e.getMessage)
             replyTo ! LinkExtractionFailed(currentDepth)
             Behaviors.stopped
 
           case e: java.net.SocketTimeoutException =>
-            context.log.error("Request timeout, {}}", e)
+            context.log.error("Request timeout, {}}", e.getMessage)
             replyTo ! LinkExtractionFailed(currentDepth)
             Behaviors.stopped
 
           case e: org.jsoup.HttpStatusException =>
             context.log.error("Request to {} failed with status code {}", e.getUrl, e.getStatusCode)
+            replyTo ! LinkExtractionFailed(currentDepth)
+            Behaviors.stopped
+
+          case e: Throwable =>
+            context.log.error("Failed fetching url {}", e.getMessage)
             replyTo ! LinkExtractionFailed(currentDepth)
             Behaviors.stopped
         }
