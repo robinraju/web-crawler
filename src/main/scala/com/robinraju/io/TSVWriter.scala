@@ -9,6 +9,9 @@ import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 
 import com.robinraju.core.{ AppConfig, CrawledPageResult }
 
+/**
+ * An actor to write output to a TSV file
+ * */
 object TSVWriter {
 
   sealed trait IOCommand
@@ -19,6 +22,9 @@ object TSVWriter {
     new TSVWriter(context).inProgress(outputFilePath)
   }
 
+  /**
+   * Initialize an output file and write the TSV header
+   * */
   def initOutputFIle(outputPath: String, context: ActorContext[IOCommand]): Path = {
     val outputDirectory = Paths.get(outputPath)
     val outputFilePath  = outputDirectory.resolve(s"crawler-result-${System.currentTimeMillis()}.tsv")

@@ -4,6 +4,9 @@ import java.net.URL
 
 import scala.util.Try
 
+/**
+ * Helper to calculate same domain link ratio of a URL.
+ * */
 object DomainRatioUtil {
 
   def calculateSameDomainRatio(parentPage: URL, childLinks: Set[URL]): Double = {

@@ -9,6 +9,13 @@ import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 import akka.actor.typed.{ ActorRef, Behavior }
 import org.jsoup.Jsoup
 
+/**
+ * This actor performs the actual work of loading a webpage and extract child urls from it.
+ * It uses JSoup under the hood to perform URL parsing.
+ *
+ * On successful URL download, it will return `LinkExtractionSuccess` to LinkHarvester.
+ * On any failure, it will return `LinkExtractionFailed` to LinkHarvester. 
+ * */
 object LinkExtractionWorker {
 
   sealed trait WorkerCommand

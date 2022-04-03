@@ -10,6 +10,19 @@ import akka.actor.typed.{ ActorRef, Behavior }
 
 import com.robinraju.cache.WebCrawlerCache
 
+/**
+ * Another Actor coordinates url downloads and cache access.
+ * 
+ * It creates N child actors (LinkExtractionWorker) based on the number of child Urls a page has.
+ * Each child actor will download and parse a single URL.
+ * 
+ * 1. on receiving message `HarvestLinks`, it checks cache for the URL.
+ * 1.1. If an entry is found in Cache, it will return the cached value to `CrawlManager`
+ * 1.2. If no entry is found in cache, it will spawn a worker and send a `StartExtraction` message to it.
+ * 2. When a response is obtained from a worker,
+ * 2.1. It will be written to cache
+ * 2.2. return urls to `CrawlManager` 
+ * */
 object LinkHarvester {
 
   sealed trait HarvesterCommand
