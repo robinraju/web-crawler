@@ -3,7 +3,6 @@ package com.robinraju.crawler
 import java.net.URL
 import java.util.UUID
 
-import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
@@ -28,20 +27,23 @@ object LinkHarvester {
 
   final case class WorkerResponseWrapper(response: LinkExtractionWorker.WorkerResponse) extends HarvesterCommand
 
-  def apply(manager: ActorRef[LinkHarvester.HarvesterResponse], cache: WebCrawlerCache): Behavior[HarvesterCommand] =
+  def apply(
+      manager: ActorRef[LinkHarvester.HarvesterResponse],
+      cache: WebCrawlerCache,
+      workerBehavior: Behavior[LinkExtractionWorker.WorkerCommand]
+  ): Behavior[HarvesterCommand] =
     Behaviors.setup[HarvesterCommand] { context =>
-      new LinkHarvester(manager, context, cache).inProgress()
+      new LinkHarvester(manager, context, cache, workerBehavior).inProgress()
     }
 }
 
 class LinkHarvester private (
     manager: ActorRef[LinkHarvester.HarvesterResponse],
     context: ActorContext[LinkHarvester.HarvesterCommand],
-    cache: WebCrawlerCache
+    cache: WebCrawlerCache,
+    workerBehavior: Behavior[LinkExtractionWorker.WorkerCommand]
 ) {
   import LinkHarvester._
-
-  implicit val ec: ExecutionContext = context.system.executionContext
 
   val responseWrapper: ActorRef[LinkExtractionWorker.WorkerResponse] =
     context.messageAdapter(response => WorkerResponseWrapper(response))
@@ -62,10 +64,7 @@ class LinkHarvester private (
           context.log.info("URL {} found from cache", parentUrl)
           manager ! HarvestedLinks(parentUrl, cachedUrls, currentDepth)
         case None =>
-          val worker = context.spawn(
-            LinkExtractionWorker(),
-            s"link-extraction-worker-${UUID.randomUUID().toString}"
-          )
+          val worker = context.spawn(workerBehavior, s"link-extraction-worker-${UUID.randomUUID().toString}")
           worker ! LinkExtractionWorker.StartExtraction(parentUrl, currentDepth, responseWrapper)
       }
       Behaviors.same
