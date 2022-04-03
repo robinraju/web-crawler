@@ -37,7 +37,7 @@ class LinkHarvesterSpec extends ScalaTestWithActorTestKit with FixtureAsyncWordS
 
         // Then
         val response = managerProbe.expectMessageType[LinkHarvester.HarvesterResponse]
-        response shouldBe LinkHarvester.HarvestedLinks(testUrl1, testUrl1Children, 1)
+        response shouldBe LinkHarvester.HarvestedLinks(testUrl1, testUrl1Children, 1, true)
       }
     }
 

@@ -45,12 +45,17 @@ class CrawlManager private (
 
       case HarvesterResponseWrapper(response) =>
         response match {
-          case LinkHarvester.HarvestedLinks(parentUrl, childUrls, depth) =>
+          case LinkHarvester.HarvestedLinks(parentUrl, childUrls, depth, isCached) =>
             val sameDomainRatio = DomainRatioUtil.calculateSameDomainRatio(parentUrl, childUrls)
 
             context.log.info(s"URL: {}  Depth: {}  Ratio: {}", parentUrl, depth, sameDomainRatio)
             context.log.info(s"Current Depth:{} Max: {}", currentDepth, maxDepth)
-            tsvWriter ! TSVWriter.WriteToFile(CrawledPageResult(parentUrl.toString, depth, sameDomainRatio))
+
+            // Try to avoid writing duplicate entries to output TSV
+            // If a URL is obtained from cache, it means we've already written that to output.
+            if (!isCached) {
+              tsvWriter ! TSVWriter.WriteToFile(CrawledPageResult(parentUrl.toString, depth, sameDomainRatio))
+            }
 
             val requestsInFlight = queuedRequests.updated(depth, Math.max(queuedRequests(depth) - 1, 0))
 
