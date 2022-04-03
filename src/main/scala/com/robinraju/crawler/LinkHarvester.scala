@@ -24,6 +24,7 @@ object LinkHarvester {
 
   sealed trait HarvesterResponse
   final case class HarvestedLinks(parentUrl: URL, childUrls: Set[URL], currentDepth: Int) extends HarvesterResponse
+  final case class LinkHarvestFailed(currentDepth: Int)                                   extends HarvesterResponse
 
   final case class WorkerResponseWrapper(response: LinkExtractionWorker.WorkerResponse) extends HarvesterCommand
 
@@ -92,6 +93,9 @@ class LinkHarvester private (
             case Failure(exception) => CacheAccessFailure(exception)
             case Success(_)         => WriteToCacheSuccess(parentUrl, childUrls, currentDepth)
           }
+          Behaviors.same
+        case LinkExtractionWorker.LinkExtractionFailed(currentDepth) =>
+          manager ! LinkHarvestFailed(currentDepth)
           Behaviors.same
       }
   }

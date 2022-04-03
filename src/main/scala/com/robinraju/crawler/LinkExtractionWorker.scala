@@ -15,40 +15,44 @@ object LinkExtractionWorker {
   sealed trait WorkerCommand
   final case class StartExtraction(parentUrl: URL, currentDepth: Int, replyTo: ActorRef[WorkerResponse])
       extends WorkerCommand
-  final case class UrlFetchFailure(exception: Throwable) extends WorkerCommand
+  final case class UrlFetchFailure(exception: Throwable, replyTo: ActorRef[WorkerResponse]) extends WorkerCommand
 
   sealed trait WorkerResponse
   final case class LinkExtractionSuccess(parentPage: URL, childUrls: Set[URL], currentDepth: Int) extends WorkerResponse
+  final case class LinkExtractionFailed(currentDepth: Int)                                        extends WorkerResponse
 
   def apply(): Behavior[WorkerCommand] = Behaviors
-    .supervise(inProgress())
-    .onFailure[IllegalArgumentException](
+    .supervise(inProgress(0))
+    .onFailure[IllegalStateException](
       // if exception occur repeatedly, worker will be restarted with backoff delays
       // this will prevent sending too many requests to the host server.
       SupervisorStrategy.restartWithBackoff(minBackoff = 200.millis, maxBackoff = 10.seconds, randomFactor = 0.1)
     )
 
-  def inProgress(): Behavior[WorkerCommand] = Behaviors.receive { (context, message) =>
+  def inProgress(currentDepth: Int): Behavior[WorkerCommand] = Behaviors.receive { (context, message) =>
     message match {
       case StartExtraction(parentUrl, currentDepth, replyTo) =>
         context.log.info("Starting link extraction for {}", parentUrl)
-        fetchLinksFromURl(parentUrl, context).fold(inProgress()) { childUrls =>
+        fetchLinksFromURl(parentUrl, context, replyTo).fold(inProgress(currentDepth)) { childUrls =>
           replyTo ! LinkExtractionSuccess(parentUrl, childUrls, currentDepth)
           Behaviors.stopped
         }
 
-      case UrlFetchFailure(exception) =>
+      case UrlFetchFailure(exception, replyTo) =>
         exception match {
           case e: java.net.MalformedURLException =>
             context.log.error("Failed fetching url {}", e)
+            replyTo ! LinkExtractionFailed(currentDepth)
             Behaviors.stopped
 
           case e: java.net.SocketTimeoutException =>
-            context.log.error("Request timeout, restarting worker")
-            throw new IllegalStateException(e)
+            context.log.error("Request timeout, {}}", e)
+            replyTo ! LinkExtractionFailed(currentDepth)
+            Behaviors.stopped
 
           case e: org.jsoup.HttpStatusException =>
             context.log.error("Request to {} failed with status code {}", e.getUrl, e.getStatusCode)
+            replyTo ! LinkExtractionFailed(currentDepth)
             Behaviors.stopped
         }
 
@@ -70,7 +74,11 @@ object LinkExtractionWorker {
       "mailto",
     ).exists(url.contains) || isFile(url)
 
-  private def fetchLinksFromURl(url: URL, context: ActorContext[WorkerCommand]): Option[Set[URL]] = {
+  private def fetchLinksFromURl(
+      url: URL,
+      context: ActorContext[WorkerCommand],
+      replyTo: ActorRef[WorkerResponse]
+  ): Option[Set[URL]] = {
     val htmlDocument = Try(
       Jsoup
         .connect(url.toString)
@@ -79,7 +87,7 @@ object LinkExtractionWorker {
         .get()
     ).fold(
       error => {
-        context.self ! UrlFetchFailure(error)
+        context.self ! UrlFetchFailure(error, replyTo)
         None
       },
       Some(_)
