@@ -22,7 +22,7 @@ object CrawlManager {
       val harvesterResponseMapper = context.messageAdapter(response => HarvesterResponseWrapper(response))
       val linkHarvester: ActorRef[LinkHarvester.HarvesterCommand] =
         context.spawn(
-          LinkHarvester(harvesterResponseMapper, cache),
+          LinkHarvester(harvesterResponseMapper, cache, LinkExtractionWorker()),
           "link-harvester"
         )
       new CrawlManager(linkHarvester, tsvWriter, context).crawling(0, maxDepth, Map())
