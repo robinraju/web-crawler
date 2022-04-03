@@ -7,6 +7,12 @@ import scala.concurrent.duration._
 
 import com.github.blemale.scaffeine.{ Cache, Scaffeine }
 
+/**
+  * An in-memory cache implementation backed by Caffeine 
+  * It uses <code> Window TinyLfu </code> 
+  * 
+ * See: https://github.com/ben-manes/caffeine/wiki/Efficiency
+  */
 class InMemoryCrawlerCache(cache: Cache[URL, Set[URL]]) extends WebCrawlerCache {
   override def get(key: URL): Future[Option[Set[URL]]] =
     Future.successful(cache.getIfPresent(key))

@@ -10,6 +10,16 @@ import com.robinraju.core.CrawledPageResult
 import com.robinraju.io.TSVWriter
 import com.robinraju.util.DomainRatioUtil
 
+/**
+ * An actor manages the entire web crawling process.
+ * It creates a child actor called 'LinkHarvester' and delegate work to it.
+ * 
+ * 1. when receiving message 'StartCrawling', forward it to LinkHarvester
+ * 2. LinkHarvester responds with 'HarvestedLinks' on successful URL download
+ * 3. LinkHarvester responds with 'LinkHarvestFailed' on any failures
+ * 
+ * This actor performs url downloads recursively by adjusting its behavior.
+ * */
 object CrawlManager {
 
   sealed trait ManagerCommand
