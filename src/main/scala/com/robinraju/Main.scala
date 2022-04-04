@@ -1,12 +1,15 @@
 package com.robinraju
 
 import java.net.URL
+
 import scala.util.Try
+
 import akka.NotUsed
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorSystem, Behavior, Terminated }
 import com.typesafe.config.ConfigFactory
 import org.slf4j.{ Logger, LoggerFactory }
+
 import com.robinraju.cache.{ InMemoryCrawlerCache, WebCrawlerCache }
 import com.robinraju.core.AppConfig
 import com.robinraju.crawler.CrawlManager
