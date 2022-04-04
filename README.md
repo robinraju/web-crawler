@@ -142,7 +142,7 @@ Check the `output` directory for `TSV` file.
 > For every run it creates a new `TSV` file with a filename containing system time stamp.
 
 
-## Future Improvements
+## 🌠 Future Improvements
 
 There is room for a lot of improvements on this crawler. Keeping the current crawling logic (just calculating pagerank),
 I would add the following 
