@@ -1,16 +1,13 @@
 package com.robinraju
 
 import java.net.URL
-
 import scala.util.Try
-
 import akka.NotUsed
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorSystem, Behavior, Terminated }
 import com.typesafe.config.ConfigFactory
 import org.slf4j.{ Logger, LoggerFactory }
-
-import com.robinraju.cache.InMemoryCrawlerCache
+import com.robinraju.cache.{ InMemoryCrawlerCache, WebCrawlerCache }
 import com.robinraju.core.AppConfig
 import com.robinraju.crawler.CrawlManager
 import com.robinraju.io.TSVWriter
@@ -42,10 +39,13 @@ object Main {
 object RootBehavior {
   def apply(appConfig: AppConfig): Behavior[NotUsed] =
     Behaviors.setup[NotUsed] { context =>
-      val inMemoryCache = InMemoryCrawlerCache(appConfig.cacheConfig.maxCacheSize, appConfig.cacheConfig.cacheExpiry)
+      // In-memory cache implementation
+      // Provide an implementation of `WebCrawlerCache` if you need to introduce any other type of cache.
+      val cache: WebCrawlerCache =
+        InMemoryCrawlerCache(appConfig.cacheConfig.maxCacheSize, appConfig.cacheConfig.cacheExpiry)
 
       val tsvWriter    = context.spawn(TSVWriter(appConfig), "tsv-writer")
-      val crawlManager = context.spawn(CrawlManager(appConfig.maxCrawlDepth, tsvWriter, inMemoryCache), "crawl-manager")
+      val crawlManager = context.spawn(CrawlManager(appConfig.maxCrawlDepth, tsvWriter, cache), "crawl-manager")
 
       // Start crawling from the seed url
       crawlManager ! CrawlManager.StartCrawling(appConfig.seedUrl)
