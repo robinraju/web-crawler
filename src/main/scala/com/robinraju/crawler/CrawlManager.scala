@@ -30,11 +30,10 @@ object CrawlManager {
   def apply(maxDepth: Int, tsvWriter: ActorRef[TSVWriter.IOCommand], cache: WebCrawlerCache): Behavior[ManagerCommand] =
     Behaviors.setup[ManagerCommand] { context =>
       val harvesterResponseMapper = context.messageAdapter(response => HarvesterResponseWrapper(response))
-      val linkHarvester: ActorRef[LinkHarvester.HarvesterCommand] =
-        context.spawn(
-          LinkHarvester(harvesterResponseMapper, cache, LinkExtractionWorker()),
-          "link-harvester"
-        )
+      val linkHarvester = context.spawn(
+        LinkHarvester(harvesterResponseMapper, cache, LinkExtractionWorker()),
+        "link-harvester"
+      )
       new CrawlManager(linkHarvester, tsvWriter, context).crawling(0, maxDepth, Map())
     }
 }

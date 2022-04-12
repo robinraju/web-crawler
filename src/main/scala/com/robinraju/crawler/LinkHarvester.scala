@@ -6,7 +6,7 @@ import java.util.UUID
 import scala.util.{ Failure, Success }
 
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
-import akka.actor.typed.{ ActorRef, Behavior }
+import akka.actor.typed.{ ActorRef, Behavior, DispatcherSelector }
 
 import com.robinraju.cache.WebCrawlerCache
 
@@ -78,7 +78,11 @@ class LinkHarvester private (
           context.log.info("URL {} found from cache", parentUrl)
           manager ! HarvestedLinks(parentUrl, cachedUrls, currentDepth, isCached = true)
         case None =>
-          val worker = context.spawn(workerBehavior, s"link-extraction-worker-${UUID.randomUUID().toString}")
+          val worker = context.spawn(
+            workerBehavior,
+            s"link-extraction-worker-${UUID.randomUUID().toString}",
+            DispatcherSelector.fromConfig("worker-dispatcher") // use custom dispatcher for blocking operation
+          )
           worker ! LinkExtractionWorker.StartExtraction(parentUrl, currentDepth, responseWrapper)
       }
       Behaviors.same
