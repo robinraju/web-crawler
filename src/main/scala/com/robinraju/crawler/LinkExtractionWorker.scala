@@ -46,7 +46,7 @@ object LinkExtractionWorker {
       case StartExtraction(parentUrl, currentDepth, replyTo) =>
         context.log.info("Starting link extraction for {}", parentUrl)
 
-        context.pipeToSelf(fetchLinksFromURl(parentUrl)) {
+        context.pipeToSelf(fetchLinksFromUrl(parentUrl)) {
           case Failure(exception) => UrlFetchFailure(exception, currentDepth, replyTo)
           case Success(childUrls) => URLFetchSuccess(parentUrl, childUrls, currentDepth, replyTo)
         }
@@ -97,7 +97,7 @@ object LinkExtractionWorker {
       "mailto",
     ).exists(url.contains) || isFile(url)
 
-  private def fetchLinksFromURl(
+  private def fetchLinksFromUrl(
       url: URL
   )(implicit ec: ExecutionContext): Future[Set[URL]] =
     Future {
