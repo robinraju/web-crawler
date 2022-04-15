@@ -1,19 +1,17 @@
 package com.robinraju
 
 import java.net.URL
-
 import scala.util.Try
-
 import akka.NotUsed
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorSystem, Behavior, Terminated }
 import com.typesafe.config.ConfigFactory
 import org.slf4j.{ Logger, LoggerFactory }
-
 import com.robinraju.cache.{ InMemoryCrawlerCache, WebCrawlerCache }
 import com.robinraju.core.AppConfig
 import com.robinraju.crawler.CrawlManager
 import com.robinraju.io.TSVWriter
+import kamon.Kamon
 
 object Main {
 
@@ -30,6 +28,9 @@ object Main {
 
     val seedUrl  = args.headOption.map(new URL(_)).getOrElse(appConfig.seedUrl)
     val maxDepth = Try(args.tail).toOption.flatMap(_.headOption.map(_.toInt)).getOrElse(appConfig.maxCrawlDepth)
+
+    // Initialize all Kamon components for collecting metrics
+    Kamon.init()
 
     ActorSystem[NotUsed](
       RootBehavior(appConfig.copy(seedUrl = seedUrl, maxCrawlDepth = maxDepth)),

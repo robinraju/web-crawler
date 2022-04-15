@@ -1,0 +1,11 @@
+apiVersion: 1
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    database: ${INFLUXDB_DATABASE}
+    user: ${GRAFANA_USERNAME}
+    password: ${GRAFANA_PASSWORD}
+    url: http://influxdb:8086
+    isDefault: true
+    editable: true
