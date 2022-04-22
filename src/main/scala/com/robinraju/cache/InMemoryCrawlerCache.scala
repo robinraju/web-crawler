@@ -6,6 +6,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import com.github.blemale.scaffeine.{ Cache, Scaffeine }
+import kamon.instrumentation.caffeine.KamonStatsCounter
 
 /**
   * An in-memory cache implementation backed by Caffeine 
@@ -27,6 +28,7 @@ object InMemoryCrawlerCache {
       Scaffeine()
         .expireAfterWrite(cacheExpiry)
         .maximumSize(maxSize)
+        .recordStats(() => new KamonStatsCounter("web-crawler-cache"))
         .build[URL, Set[URL]]()
 
     new InMemoryCrawlerCache(cache)
