@@ -12,11 +12,10 @@ services:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME}
       - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
-      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORGANIZATION}
-      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_DATABASE}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_API_KEY}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORGANIZATION}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET_NAME}
       - DOCKER_INFLUXDB_INIT_RETENTION=1w
-
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -24,12 +23,15 @@ services:
       - "3000:3000"
     volumes:
       - grafana-storage:/var/lib/grafana
-      - ./grafana-provisioning/:/etc/grafana/provisioning
+      - ./grafana/provisioning/:/etc/grafana/provisioning
     depends_on:
       - influxdb
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - DS_INFLUXDB_API_KEY=${INFLUXDB_API_KEY}
+      - DS_INFLUXDB_ORGANIZATION=${INFLUXDB_ORGANIZATION}
+      - DS_INFLUXDB_BUCKET=${INFLUXDB_BUCKET_NAME}
 
 volumes:
   influxdb-storage:
