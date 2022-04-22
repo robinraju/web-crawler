@@ -1,5 +1,7 @@
 # Web Crawler
 
+[![Scala CI](https://github.com/robinraju/web-crawler/actions/workflows/scala.yml/badge.svg)](https://github.com/robinraju/web-crawler/actions/workflows/scala.yml)
+
 A simple web crawler built using Scala and Akka Typed
 
 ## Tech Stack:
