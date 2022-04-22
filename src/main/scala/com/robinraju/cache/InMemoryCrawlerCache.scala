@@ -1,8 +1,10 @@
 package com.robinraju.cache
 
 import java.net.URL
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
 import com.github.blemale.scaffeine.{ Cache, Scaffeine }
 import kamon.instrumentation.caffeine.KamonStatsCounter
 
