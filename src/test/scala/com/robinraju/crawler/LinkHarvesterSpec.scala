@@ -18,7 +18,7 @@ class LinkHarvesterSpec extends ScalaTestWithActorTestKit with FixtureAsyncWordS
 
   override def withFixture(test: OneArgAsyncTest): FutureOutcome =
     complete {
-      withFixture(test.toNoArgAsyncTest(new LinkHarvesterFixture() {}))
+      withFixture(test.toNoArgAsyncTest(new LinkHarvesterFixture {}))
     } lastly {}
 
   "LinkHarvester" should {
