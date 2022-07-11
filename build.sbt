@@ -90,7 +90,7 @@ lazy val library =
       val ScalaTestVersion = "3.2.12"
       val ScalafixVersion  = "0.6.0"
       val LogbackVersion   = "1.2.11"
-      val JSoupVersion     = "1.15.1"
+      val JSoupVersion     = "1.15.2"
       val SCaffeineVersion = "5.2.0"
       val KamonVersion     = "2.5.5"
     }
