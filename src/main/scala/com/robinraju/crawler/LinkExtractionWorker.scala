@@ -103,7 +103,7 @@ object LinkExtractionWorker {
     Future {
       Jsoup
         .connect(url.toString)
-        .userAgent("LT Web Crawler")
+        .userAgent("Akka Web Crawler")
         .timeout(3000)
         .get()
     }.map { htmlDocument =>
