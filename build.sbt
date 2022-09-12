@@ -86,7 +86,7 @@ fork := true
 lazy val library =
   new {
     object Version {
-      val AkkaVersion      = "2.6.19"
+      val AkkaVersion      = "2.6.20"
       val ScalaTestVersion = "3.2.13"
       val ScalafixVersion  = "0.6.0"
       val LogbackVersion   = "1.4.0"
