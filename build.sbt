@@ -22,7 +22,7 @@ inThisBuild(
         url("https://github.com/robinraju")
       )
     ),
-    scalaVersion      := "2.13.9",
+    scalaVersion      := "2.13.10",
     semanticdbEnabled := true,
     semanticdbVersion := scalafixSemanticdb.revision,
     scalafixDependencies += library.scalafix,
