@@ -1,6 +1,6 @@
 //sbt-revolver - for starting and stopping app in the background
 //see: https://github.com/spray/sbt-revolver
-addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
+addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 
 // scalafmt -  Format source files
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
