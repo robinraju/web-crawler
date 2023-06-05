@@ -6,7 +6,7 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
 
 // scalafix - Rules for code format: organize imports
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.11.0")
 
 //Kamon
 addSbtPlugin("io.kamon" % "sbt-kanela-runner" % "2.0.14")
