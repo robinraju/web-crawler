@@ -9,4 +9,4 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.11.1")
 
 //Kamon
-addSbtPlugin("io.kamon" % "sbt-kanela-runner" % "2.0.14")
+addSbtPlugin("io.kamon" % "sbt-kanela-runner" % "2.1.0")
