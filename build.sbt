@@ -92,7 +92,7 @@ lazy val library =
       val LogbackVersion   = "1.5.12"
       val JSoupVersion     = "1.18.1"
       val SCaffeineVersion = "5.3.0"
-      val KamonVersion     = "2.7.3"
+      val KamonVersion     = "2.7.5"
     }
     val akka           = "com.typesafe.akka"  %% "akka-actor-typed"         % Version.AkkaVersion
     val akkaTestKit    = "com.typesafe.akka"  %% "akka-actor-testkit-typed" % Version.AkkaVersion
